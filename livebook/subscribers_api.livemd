@@ -1,0 +1,298 @@
+# BentoSdk Subscribers API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "./Projects/XenoCode/bento_sdk"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk to work with subscribers in the Bento marketing platform. The Subscribers API allows you to:
+
+* Find subscribers
+* Create subscribers
+* Find or create subscribers (upsert)
+* Import subscribers in bulk
+* Change subscriber email
+* Subscribe/unsubscribe users
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the LiveBook secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Finding Subscribers
+
+Let's find a subscriber by email:
+
+```elixir
+# Example of finding a subscriber
+email = "example@example.com"
+
+case BentoSdk.find_subscriber(email) do
+  {:ok, nil} ->
+    "Subscriber not found"
+  {:ok, subscriber} ->
+    subscriber
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Creating Subscribers
+
+Now let's create a new subscriber:
+
+```elixir
+# Example of creating a subscriber
+email = "new_user@example.com"
+
+case BentoSdk.create_subscriber(email) do
+  {:ok, subscriber} ->
+    subscriber
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Finding or Creating Subscribers (Upsert)
+
+This is a common operation that will find a subscriber if they exist, or create them if they don't:
+
+```elixir
+# Example of finding or creating a subscriber
+email = "user@example.com"
+
+case BentoSdk.find_or_create_subscriber(email) do
+  {:ok, subscriber} ->
+    subscriber
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Importing Subscribers in Bulk
+
+You can import multiple subscribers at once:
+
+```elixir
+# Example of importing subscribers in bulk
+subscribers = [
+  %{
+    email: "user1@example.com",
+    first_name: "User",
+    last_name: "One"
+  },
+  %{
+    email: "user2@example.com",
+    first_name: "User",
+    last_name: "Two"
+  }
+]
+
+case BentoSdk.import_subscribers(subscribers) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Changing Subscriber Email
+
+You can change a subscriber's email address:
+
+```elixir
+# Example of changing a subscriber's email
+old_email = "old_email@example.com"
+new_email = "new_email@example.com"
+
+case BentoSdk.change_email(old_email, new_email) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Subscribe/Unsubscribe
+
+You can subscribe or unsubscribe users:
+
+```elixir
+# Example of subscribing a user
+email = "user@example.com"
+
+case BentoSdk.subscribe(email) do
+  {:ok, result} -> 
+    result
+  {:error, reason} -> 
+    "Error: #{reason}"
+end
+```
+
+```elixir
+# Example of unsubscribing a user
+email = "user@example.com"
+
+case BentoSdk.unsubscribe(email) do
+  {:ok, result} -> 
+    result
+  {:error, reason} -> 
+    "Error: #{reason}"
+end
+```
+
+## Running Custom Commands
+
+You can run custom commands on subscribers:
+
+```elixir
+# Example of running a custom command
+command = "get_subscriber_details"
+email = "user@example.com"
+query = %{include_tags: true, include_fields: true}
+
+case BentoSdk.run_command(command, email, query) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Creating a Newsletter Signup Flow
+
+Here's an example of how you might handle a newsletter signup:
+
+```elixir
+# Example of a newsletter signup flow
+email = "newsletter_signup@example.com"
+
+# First, check if the subscriber already exists
+subscriber_result = BentoSdk.find_subscriber(email)
+
+case subscriber_result do
+  {:ok, nil} ->
+    # Subscriber doesn't exist, create a new one
+    case BentoSdk.create_subscriber(email) do
+      {:ok, subscriber} ->
+        %{
+          status: "success",
+          message: "Thank you for subscribing to our newsletter!",
+          subscriber: subscriber
+        }
+      {:error, reason} ->
+        %{
+          status: "error",
+          message: "Failed to create subscriber: #{reason}"
+        }
+    end
+  {:ok, existing_subscriber} ->
+    # Subscriber exists, update their tags
+    existing_tags = existing_subscriber["tags"] || []
+    new_tags = ["newsletter", "website_signup"] -- existing_tags
+    
+    if Enum.empty?(new_tags) do
+      %{
+        status: "success",
+        message: "You are already subscribed to our newsletter.",
+        subscriber: existing_subscriber
+      }
+    else
+      # Add the new tags
+      case BentoSdk.add_tags(email, new_tags) do
+        {:ok, updated_subscriber} ->
+          %{
+            status: "success",
+            message: "Your newsletter preferences have been updated.",
+            subscriber: updated_subscriber
+          }
+        {:error, reason} ->
+          %{
+            status: "error",
+            message: "Failed to update tags: #{reason}"
+          }
+      end
+    end
+  {:error, reason} ->
+    %{
+      status: "error",
+      message: "Failed to check subscriber: #{reason}"
+    }
+end
+```
+
+## Example: Bulk Import with Error Handling
+
+Here's an example of how you might handle a bulk import with error handling:
+
+```elixir
+# Example of bulk import with error handling
+subscribers = [
+  %{
+    email: "valid_user@example.com",
+    first_name: "Valid",
+    last_name: "User"
+  },
+  %{
+    email: "invalid-email",  # Invalid email format
+    first_name: "Invalid",
+    last_name: "User"
+  },
+  %{
+    email: "duplicate@example.com",
+    first_name: "Duplicate",
+    last_name: "User"
+  },
+  %{
+    email: "duplicate@example.com",  # Duplicate email
+    first_name: "Another",
+    last_name: "Duplicate"
+  }
+]
+
+# Validate emails before import
+validated_subscribers = Enum.filter(subscribers, fn subscriber ->
+  email = subscriber.email
+  # Simple regex for email validation
+  email_regex = ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+  Regex.match?(email_regex, email)
+end)
+
+# Remove duplicates by email
+unique_subscribers = Enum.uniq_by(validated_subscribers, & &1.email)
+
+# Import the validated and deduplicated subscribers
+case BentoSdk.import_subscribers(unique_subscribers) do
+  {:ok, result} ->
+    %{
+      status: "success",
+      total_attempted: length(subscribers),
+      total_valid: length(validated_subscribers),
+      total_unique: length(unique_subscribers),
+      total_imported: result["imported"] || 0,
+      invalid_count: length(subscribers) - length(validated_subscribers),
+      duplicate_count: length(validated_subscribers) - length(unique_subscribers),
+      import_result: result
+    }
+  {:error, reason} ->
+    %{
+      status: "error",
+      message: "Import failed: #{reason}",
+      total_attempted: length(subscribers)
+    }
+end
+```
+
+<!-- livebook:{"offset":6990,"stamp":{"token":"XCP.20arAV1bfCudwN8vJA_dpM6eddk-kdcoGMuvKl9qOiEaDGheBfRWxzayyU7qah_lau5YRSRnmVHKrQLds1zLiZpl7RKkIf5TooqmxaDAyeMhGx8i-7_7Inj7KqOEoW7UulKaPEVZbpxWE9b7LDBSHQgb_MPiBo-gFIre0YMPU3I","version":2}} -->

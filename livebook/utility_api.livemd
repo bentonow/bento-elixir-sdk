@@ -1,0 +1,207 @@
+# BentoSdk Utility API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "../"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk's Utility API methods in the Bento marketing platform. The Utility API allows you to:
+
+* Moderate content for profanity and inappropriate content
+* Guess the gender of a name
+* Geolocate an IP address
+
+These utility functions can help enhance your marketing campaigns with additional intelligence.
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Content Moderation
+
+The content moderation API helps you check user-generated content for profanity and other inappropriate content before using it in your marketing materials.
+
+```elixir
+# Example of moderating content
+content = "This is some sample content to check for moderation."
+
+case BentoSdk.moderate_content(content) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Gender Guessing
+
+The gender guessing API helps you make educated guesses about a person's gender based on their name.
+
+```elixir
+# Example of guessing gender from a name
+name = "Alex"
+
+case BentoSdk.guess_gender(name) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## IP Geolocation
+
+The IP geolocation API helps you determine the geographic location of an IP address.
+
+```elixir
+# Example of geolocating an IP address
+ip_address = "8.8.8.8"
+
+case BentoSdk.geolocate(ip_address) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Jesse's Ruleset
+
+Jesse's ruleset is a set of rules for validating email addresses beyond simple format validation.
+
+```elixir
+# Example of checking an email against Jesse's ruleset
+email = "test@example.com"
+opts = [ruleset: "standard"]
+
+case BentoSdk.jesses_ruleset_reasons(email, opts) do
+  {:ok, reasons} ->
+    if Enum.empty?(reasons) do
+      "Email is valid"
+    else
+      "Email is invalid: #{Enum.join(reasons, ", ")}"
+    end
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Moderating User Reviews
+
+Here's an example of how you might use the content moderation API to check user reviews before publishing them:
+
+```elixir
+# Example of moderating a user review
+review = "This product is amazing! I love it so much."
+
+case BentoSdk.moderate_content(review) do
+  {:ok, result} ->
+    if result["safe"] do
+      # If the review is safe, we can publish it
+      %{
+        status: "approved",
+        review: review,
+        moderation_result: result
+      }
+    else
+      # If the review contains inappropriate content, we could flag it for manual review
+      # For this example, we'll just display an error message
+      %{
+        status: "error",
+        message: "Review contains inappropriate content",
+        categories: result["categories"]
+      }
+    end
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Personalized Email with Location
+
+Here's an example of how you might use the geolocation API to personalize an email:
+
+```elixir
+# Example of geolocating an IP address
+ip_address = "8.8.8.8"
+
+case BentoSdk.geolocate(ip_address) do
+  {:ok, result} ->
+    city = result["city"] || "your city"
+    country = result["country"] || "your country"
+
+    # Create email content
+    subject = "Special Offers for #{city}, #{country}"
+
+    html_body = """
+    <html>
+    <body>
+      <h1>Hello!</h1>
+      <p>We noticed you're from #{city}, #{country}. We have some special offers just for your area!</p>
+      <h2>Local Deals</h2>
+      <p>Check out these deals specifically for #{city}:</p>
+      <ul>
+        <li>Special Discount 1</li>
+        <li>Special Discount 2</li>
+        <li>Special Discount 3</li>
+      </ul>
+      <p>Click <a href="https://example.com/deals/#{String.downcase(city)}">here</a> to see all deals in your area.</p>
+      <p>Best regards,<br>The Team</p>
+    </body>
+    </html>
+    """
+
+    # Display the email content
+    %{
+      to: "example@example.com",
+      subject: subject,
+      html_body: html_body
+    }
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Personalized Greeting Based on Name Gender
+
+Here's an example of how you might use the gender guessing API to personalize a greeting:
+
+```elixir
+# Example of guessing gender from a name
+name = "Alex"
+
+case BentoSdk.guess_gender(name) do
+  {:ok, result} ->
+    gender = result["gender"]
+    probability = result["probability"]
+
+    # Generate a personalized greeting based on the gender
+    greeting = cond do
+      gender == "male" && probability > 0.7 ->
+        "Hello Mr. #{name}!"
+      gender == "female" && probability > 0.7 ->
+        "Hello Ms. #{name}!"
+      true ->
+        "Hello #{name}!"
+    end
+
+    %{
+      greeting: greeting,
+      gender_data: result
+    }
+  {:error, reason} ->
+    "Error: #{reason}"
+end

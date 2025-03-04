@@ -1,0 +1,173 @@
+# BentoSdk Emails API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "../"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk to send emails through the Bento marketing platform. The Emails API allows you to:
+
+- Send regular emails
+- Send transactional emails
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Sending Regular Emails
+
+Let's send a regular email:
+
+```elixir
+# Example of sending a regular email
+to_email = "recipient@example.com"
+from_email = "sender@example.com"
+subject = "Hello from BentoSdk"
+html_body = "<h1>Hello!</h1><p>This is a test email from BentoSdk.</p>"
+personalizations = %{
+  "first_name" => "John",
+  "last_name" => "Doe"
+}
+
+case BentoSdk.send_email(to_email, from_email, subject, html_body, personalizations) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Sending Transactional Emails
+
+You can send transactional emails:
+
+```elixir
+# Example of sending a transactional email
+to_email = "recipient@example.com"
+from_email = "sender@example.com"
+subject = "Your Order Confirmation"
+html_body = "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>"
+options = %{
+  "cc" => ["cc@example.com"],
+  "bcc" => ["bcc@example.com"],
+  "reply_to" => "reply@example.com"
+}
+
+case BentoSdk.send_transactional_email(to_email, from_email, subject, html_body, options) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Sending Broadcast Emails
+
+You can send broadcast emails:
+
+```elixir
+# Example of sending a broadcast email
+broadcast_id = "12345"
+email = "recipient@example.com"
+personalizations = %{
+  "first_name" => "John",
+  "last_name" => "Doe"
+}
+
+case BentoSdk.send_broadcast(broadcast_id, email, personalizations) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Welcome Email
+
+Here's an example of sending a welcome email:
+
+```elixir
+# Example of sending a welcome email
+to_email = "recipient@example.com"
+from_email = "sender@example.com"
+subject = "Welcome to Our Service!"
+html_body = """
+<html>
+<body>
+  <h1>Welcome, John!</h1>
+  <p>Thank you for signing up for our service. We're excited to have you on board!</p>
+  <p>Here are some resources to help you get started:</p>
+  <ul>
+    <li><a href="https://example.com/getting-started">Getting Started Guide</a></li>
+    <li><a href="https://example.com/faq">Frequently Asked Questions</a></li>
+    <li><a href="https://example.com/support">Support Center</a></li>
+  </ul>
+  <p>If you have any questions, please don't hesitate to reach out!</p>
+  <p>Best regards,<br>The Team</p>
+</body>
+</html>
+"""
+
+personalizations = %{
+  "first_name" => "John"
+}
+
+case BentoSdk.send_email(to_email, from_email, subject, html_body, personalizations) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Order Confirmation Email
+
+Here's an example of sending an order confirmation email:
+
+```elixir
+# Example of sending an order confirmation email
+to_email = "recipient@example.com"
+from_email = "sender@example.com"
+subject = "Your Order ##{12345} Confirmation"
+html_body = """
+<html>
+<body>
+  <h1>Order Confirmation</h1>
+  <p>Hi John,</p>
+  <p>Thank you for your order! We've received your order and are processing it now.</p>
+  <h2>Order Details</h2>
+  <p><strong>Order Number:</strong> 12345</p>
+  <p><strong>Order Total:</strong> $100.00</p>
+  <p>You will receive another email when your order ships.</p>
+  <p>Thank you for shopping with us!</p>
+  <p>Best regards,<br>The Team</p>
+</body>
+</html>
+"""
+
+personalizations = %{
+  "first_name" => "John",
+  "order_number" => "12345",
+  "order_total" => "100.00"
+}
+
+case BentoSdk.send_transactional_email(to_email, from_email, subject, html_body, personalizations) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```

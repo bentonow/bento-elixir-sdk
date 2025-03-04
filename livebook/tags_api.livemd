@@ -1,0 +1,192 @@
+# BentoSdk Tags API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "../"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk to manage tags for subscribers in the Bento marketing platform. The Tags API allows you to:
+
+- Add tags to subscribers
+- Add tags via events
+- Remove tags from subscribers
+
+Tags are a powerful way to segment your subscribers based on their behavior, preferences, or other attributes.
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Adding Tags
+
+Let's add a tag to a subscriber:
+
+```elixir
+# Example of adding a tag to a subscriber
+email = "example@example.com"
+tag = "newsletter"
+
+case BentoSdk.add_tag(email, tag) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Adding Tags via Events
+
+You can also add tags via events, which can be useful for tracking the source of the tag:
+
+```elixir
+# Example of adding a tag via an event
+email = "example@example.com"
+tag = "newsletter"
+
+case BentoSdk.add_tag_via_event(email, tag) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Removing Tags
+
+You can remove a tag from a subscriber:
+
+```elixir
+# Example of removing a tag from a subscriber
+email = "example@example.com"
+tag = "newsletter"
+
+case BentoSdk.remove_tag(email, tag) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Listing Tags
+
+You can list all tags for a subscriber:
+
+```elixir
+# Example of listing tags for a subscriber
+email = "example@example.com"
+
+case BentoSdk.list_tags(email) do
+  {:ok, tags} ->
+    tags
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Listing All Tags
+
+You can list all tags in your Bento account:
+
+```elixir
+# Example of listing all tags
+case BentoSdk.list_all_tags() do
+  {:ok, tags} ->
+    tags
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Batch Adding Tags
+
+You can add tags to multiple subscribers at once:
+
+```elixir
+# Example of batch adding tags
+batch = [
+  %{
+    email: "example1@example.com",
+    tags: ["newsletter", "customer"]
+  },
+  %{
+    email: "example2@example.com",
+    tags: ["newsletter", "prospect"]
+  }
+]
+
+case BentoSdk.batch_add_tags(batch) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Common Tag Use Cases
+
+Here are some common use cases for tags:
+
+### Interest-Based Tags
+
+```elixir
+# Example of adding an interest-based tag
+email = "example@example.com"
+interest = "sports"
+
+tag = "interest_#{String.downcase(interest)}"
+
+case BentoSdk.add_tag(email, tag) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+### Lifecycle Tags
+
+```elixir
+# Example of adding a lifecycle tag
+email = "example@example.com"
+stage = "customer"
+
+tag = "lifecycle_#{String.downcase(stage)}"
+
+case BentoSdk.add_tag(email, tag) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+### Campaign Tags
+
+```elixir
+# Example of adding a campaign tag
+email = "example@example.com"
+campaign = "summer_sale"
+
+tag = "campaign_#{String.downcase(campaign)}"
+
+case BentoSdk.add_tag(email, tag) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```

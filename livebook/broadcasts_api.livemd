@@ -1,0 +1,273 @@
+# BentoSdk Broadcasts API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "../"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk to work with broadcasts in the Bento marketing platform. The Broadcasts API allows you to:
+
+- Create broadcasts
+- Schedule broadcasts
+- Send test broadcasts
+- Get broadcast statistics
+
+Broadcasts are a powerful way to send emails to segments of your subscribers.
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Creating a Broadcast
+
+Let's create a new broadcast:
+
+```elixir
+# Example of creating a broadcast
+broadcast_params = %{
+  name: "Summer Sale Announcement",
+  subject: "Summer Sale - 20% Off Everything!",
+  body: "Our summer sale is now on! Get 20% off everything until the end of the month.",
+  from_name: "Example Store",
+  from_email: "sales@example.com"
+}
+
+case BentoSdk.create_broadcast(broadcast_params) do
+  {:ok, broadcast} ->
+    broadcast
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Getting Broadcasts
+
+Let's get a list of all broadcasts:
+
+```elixir
+# Example of getting all broadcasts
+case BentoSdk.get_broadcasts() do
+  {:ok, broadcasts} ->
+    broadcasts
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Getting a Specific Broadcast
+
+Let's get a specific broadcast by ID:
+
+```elixir
+# Example of getting a specific broadcast
+broadcast_id = "example_broadcast_id"
+
+case BentoSdk.get_broadcast(broadcast_id) do
+  {:ok, broadcast} ->
+    broadcast
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Updating a Broadcast
+
+Let's update an existing broadcast:
+
+```elixir
+# Example of updating a broadcast
+broadcast_id = "example_broadcast_id"
+update_params = %{
+  subject: "EXTENDED: Summer Sale - 20% Off Everything!",
+  body: "Our summer sale has been extended! Get 20% off everything until the end of next month."
+}
+
+case BentoSdk.update_broadcast(broadcast_id, update_params) do
+  {:ok, broadcast} ->
+    broadcast
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Sending a Broadcast
+
+Let's send a broadcast to a list of subscribers:
+
+```elixir
+# Example of sending a broadcast
+broadcast_id = "example_broadcast_id"
+emails = ["subscriber1@example.com", "subscriber2@example.com"]
+
+case BentoSdk.send_broadcast(broadcast_id, emails) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Creating and Sending a Promotional Broadcast
+
+Here's an example of how you might create and send a promotional broadcast:
+
+```elixir
+# Example of creating a promotional broadcast
+promo_params = %{
+  name: "Flash Sale Announcement",
+  subject: "Flash Sale - 24 Hours Only!",
+  from_name: "Example Store",
+  from_email: "sales@example.com"
+}
+
+html_body = """
+<html>
+<body>
+  <h1>Flash Sale - 24 Hours Only!</h1>
+  <p>Dear Customer,</p>
+  <p>We're excited to announce our 24-hour flash sale! Get <strong>30% off</strong> everything on our website.</p>
+  <p>Use code <code>FLASH30</code> at checkout.</p>
+  <p>Sale ends tomorrow at midnight!</p>
+  <p>Click <a href="https://example.com/sale">here</a> to start shopping.</p>
+  <p>Best regards,<br>The Example Store Team</p>
+</body>
+</html>
+"""
+
+promo_params = Map.put(promo_params, :body, html_body)
+
+# Create the broadcast
+case BentoSdk.create_broadcast(promo_params) do
+  {:ok, broadcast} ->
+    # Get the broadcast ID
+    broadcast_id = broadcast["id"]
+    
+    # Send to a segment of subscribers
+    # In a real application, you would get these from your database or another source
+    target_emails = ["customer1@example.com", "customer2@example.com"]
+    
+    # Send the broadcast
+    case BentoSdk.send_broadcast(broadcast_id, target_emails) do
+      {:ok, result} ->
+        %{
+          status: "success",
+          broadcast: broadcast,
+          send_result: result
+        }
+      {:error, reason} ->
+        "Error sending broadcast: #{reason}"
+    end
+  {:error, reason} ->
+    "Error creating broadcast: #{reason}"
+end
+```
+
+## Example: A/B Testing Broadcasts
+
+Here's an example of how you might create two versions of a broadcast for A/B testing:
+
+```elixir
+# Example of A/B testing broadcasts
+# Version A
+version_a_params = %{
+  name: "New Product Announcement - Version A",
+  subject: "Introducing Our New Product!",
+  from_name: "Example Store",
+  from_email: "news@example.com",
+  body: "We're excited to announce our new product! Click here to learn more: https://example.com/new-product"
+}
+
+# Version B
+version_b_params = %{
+  name: "New Product Announcement - Version B",
+  subject: "New Product Alert: Check This Out!",
+  from_name: "Example Store",
+  from_email: "news@example.com",
+  body: "Check out our amazing new product! Limited time offer: https://example.com/new-product"
+}
+
+# Create both versions
+{version_a_result, version_b_result} = {
+  BentoSdk.create_broadcast(version_a_params),
+  BentoSdk.create_broadcast(version_b_params)
+}
+
+# Process results
+case {version_a_result, version_b_result} do
+  {{:ok, broadcast_a}, {:ok, broadcast_b}} ->
+    # Both broadcasts created successfully
+    # In a real application, you would split your subscriber list and send each version to half
+    %{
+      status: "success",
+      version_a: broadcast_a,
+      version_b: broadcast_b,
+      next_steps: "Split your subscriber list and send each version to a different segment to test performance."
+    }
+  {{:error, reason_a}, _} ->
+    "Error creating version A: #{reason_a}"
+  {_, {:error, reason_b}} ->
+    "Error creating version B: #{reason_b}"
+end
+```
+
+## Scheduling a Broadcast
+
+Let's schedule a broadcast:
+
+```elixir
+# Example of scheduling a broadcast
+broadcast_id = "example_broadcast_id"
+schedule_at = "2023-12-31T12:00:00Z"
+
+case BentoSdk.schedule_broadcast(broadcast_id, schedule_at) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Sending a Test Broadcast
+
+Let's send a test broadcast:
+
+```elixir
+# Example of sending a test broadcast
+broadcast_id = "example_broadcast_id"
+test_email = "test@example.com"
+
+case BentoSdk.send_test_broadcast(broadcast_id, test_email) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Getting Broadcast Statistics
+
+Let's get statistics for a broadcast:
+
+```elixir
+# Example of getting broadcast statistics
+broadcast_id = "example_broadcast_id"
+
+case BentoSdk.get_broadcast_stats(broadcast_id) do
+  {:ok, stats} ->
+    stats
+  {:error, reason} ->
+    "Error: #{reason}"
+end

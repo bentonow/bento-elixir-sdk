@@ -1,0 +1,165 @@
+# BentoSdk Events API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "../"},
+  {:kino, "~> 0.11.0"},
+  {:jason, "~> 1.2"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk to work with events in the Bento marketing platform. The Events API allows you to:
+
+- Track individual events
+- Import events in bulk
+
+Events are a powerful way to track user behavior and trigger automations in Bento.
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Tracking Events
+
+Let's track an event for a subscriber:
+
+```elixir
+# Example of tracking an event
+email = "example@example.com"
+type = "page_view"
+data = %{
+  "url" => "https://example.com/products/123",
+  "referrer" => "https://google.com"
+}
+
+case BentoSdk.track_event(email, type, data) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Listing Events
+
+You can list events for a subscriber:
+
+```elixir
+# Example of listing events
+email = "example@example.com"
+
+case BentoSdk.list_events(email) do
+  {:ok, events} ->
+    events
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Listing Event Types
+
+You can also list all event types that have been tracked:
+
+```elixir
+# Example of listing event types
+case BentoSdk.list_event_types() do
+  {:ok, event_types} ->
+    event_types
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Common Event Types
+
+Here are some common event types you might want to track:
+
+- `page_viewed` - User viewed a page
+- `product_viewed` - User viewed a product
+- `product_added_to_cart` - User added a product to cart
+- `checkout_started` - User started checkout
+- `order_completed` - User completed an order
+- `form_submitted` - User submitted a form
+
+## Example: Track Page View
+
+```elixir
+# Example of tracking a page view
+email = "example@example.com"
+type = "page_viewed"
+data = %{
+  "url" => "https://example.com/products/123",
+  "referrer" => "https://google.com"
+}
+
+case BentoSdk.track_event(email, type, data) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Track Product View
+
+```elixir
+# Example of tracking a product view
+email = "example@example.com"
+type = "product_viewed"
+data = %{
+  "product_id" => "123",
+  "name" => "Example Product",
+  "price" => "19.99"
+}
+
+case BentoSdk.track_event(email, type, data) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Importing Events in Bulk
+
+You can import multiple events at once:
+
+```elixir
+# Example of importing events in bulk
+events = [
+  %{
+    email: "example@example.com",
+    type: "page_viewed",
+    fields: %{
+      "url" => "https://example.com/products/123",
+      "referrer" => "https://google.com"
+    }
+  },
+  %{
+    email: "example@example.com",
+    type: "product_viewed",
+    fields: %{
+      "product_id" => "123",
+      "name" => "Example Product",
+      "price" => "19.99"
+    }
+  }
+]
+
+case BentoSdk.import_events(events) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end

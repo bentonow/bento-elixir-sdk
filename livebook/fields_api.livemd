@@ -1,0 +1,167 @@
+# BentoSdk Fields API
+
+```elixir
+Mix.install([
+  {:bento_sdk, path: "../"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates how to use the BentoSdk to manage custom fields for subscribers in the Bento marketing platform. The Fields API allows you to:
+
+- Add custom fields to subscribers
+- Remove custom fields from subscribers
+
+Custom fields allow you to store additional information about your subscribers beyond the standard email and name fields.
+
+## Configuration
+
+We'll use Livebook's secrets feature to securely store and access your Bento credentials:
+
+```elixir
+# Configure BentoSdk with the secrets
+BentoSdk.configure(
+  site_uuid: System.fetch_env!("LB_BENTO_SITE_UUID"),
+  username: System.fetch_env!("LB_BENTO_USERNAME"),
+  password: System.fetch_env!("LB_BENTO_PASSWORD")
+)
+```
+
+## Adding Custom Fields
+
+Let's add a custom field to a subscriber:
+
+```elixir
+# Example of adding a custom field to a subscriber
+email = "example@example.com"
+field = "favorite_color"
+value = "blue"
+
+case BentoSdk.add_field(email, field, value) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Getting Custom Fields
+
+Let's get all custom fields for a subscriber:
+
+```elixir
+# Example of getting custom fields for a subscriber
+email = "example@example.com"
+
+case BentoSdk.get_fields(email) do
+  {:ok, fields} ->
+    fields
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Updating Custom Fields
+
+Let's update a custom field for a subscriber:
+
+```elixir
+# Example of updating a custom field for a subscriber
+email = "example@example.com"
+field = "favorite_color"
+value = "green"
+
+case BentoSdk.update_field(email, field, value) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Removing Custom Fields
+
+Let's remove a custom field from a subscriber:
+
+```elixir
+# Example of removing a custom field from a subscriber
+email = "example@example.com"
+field = "favorite_color"
+
+case BentoSdk.remove_field(email, field) do
+  {:ok, result} ->
+    result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Finding Subscribers by Field
+
+Let's find all subscribers with a specific field value:
+
+```elixir
+# Example of finding subscribers by field
+field = "favorite_color"
+value = "blue"
+
+case BentoSdk.find_by_field(field, value) do
+  {:ok, subscribers} ->
+    subscribers
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Segmenting Subscribers by Custom Fields
+
+Here's an example of how you might use custom fields to segment your subscribers:
+
+```elixir
+# Example of segmenting subscribers by custom fields
+field = "subscription_tier"
+value = "premium"
+
+case BentoSdk.find_by_field(field, value) do
+  {:ok, subscribers} ->
+    # Send a special offer to premium subscribers
+    premium_subscribers = subscribers
+    
+    # Display the number of premium subscribers
+    %{
+      premium_subscriber_count: length(premium_subscribers),
+      premium_subscribers: premium_subscribers
+    }
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Example: Personalizing Content Based on Custom Fields
+
+Here's an example of how you might use custom fields to personalize content for a subscriber:
+
+```elixir
+# Example of personalizing content based on custom fields
+email = "example@example.com"
+
+case BentoSdk.get_fields(email) do
+  {:ok, fields} ->
+    # Extract relevant fields for personalization
+    favorite_color = fields["favorite_color"] || "blue"
+    subscription_tier = fields["subscription_tier"] || "basic"
+    
+    # Generate personalized content based on the fields
+    personalized_content = %{
+      email: email,
+      greeting: "Hello valued #{subscription_tier} subscriber!",
+      message: "We noticed your favorite color is #{favorite_color}. Check out our new #{favorite_color} products!",
+      special_offer: if(subscription_tier == "premium", do: "20% off your next purchase!", else: "10% off your next purchase!")
+    }
+    
+    personalized_content
+  {:error, reason} ->
+    "Error: #{reason}"
+end
