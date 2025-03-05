@@ -1,49 +1,33 @@
 # BentoSdk Livebook Examples
 
-## Section
+## Introduction
 
 Welcome to the BentoSdk Livebook Examples! This is a collection of interactive examples that demonstrate how to use the BentoSdk Elixir package.
 
-## Available Examples
-
-### General Usage
-
-* [BentoSdk Demo](./bento_sdk_demo.livemd) - Basic usage examples
+<!-- livebook:{"break_markdown":true} -->
 
 ### API Categories
 
 * [Subscribers API](./subscribers_api.livemd) - Working with subscribers
 * [Events API](./events_api.livemd) - Tracking and importing events
 * [Emails API](./emails_api.livemd) - Sending emails and transactional emails
-* [Tags API](./tags_api.livemd) - Managing subscriber tags
-* [Fields API](./fields_api.livemd) - Managing subscriber fields
+* [Tags API](./tags_api.livemd) - Managing tags
+* [Fields API](./fields_api.livemd) - Managing fields
 * [Broadcasts API](./broadcasts_api.livemd) - Working with broadcasts
 * [Stats API](./stats_api.livemd) - Retrieving statistics
-* [Spam API](./spam_api.livemd) - Email validation and risk assessment
 * [Utility API](./utility_api.livemd) - Content moderation, gender guessing, and geolocation
 
 ## Getting Started
 
-To use these examples, you'll need to configure your Bento credentials. You can do this in two ways:
+To use these examples in Livebook, you need to configure the following environment variables:
 
-1. Set environment variables:
-
-```bash
-export BENTO_SITE_UUID="your-site-uuid"
-export BENTO_USERNAME="your-username"
-export BENTO_PASSWORD="your-password"
+```
+BENTO_SITE_UUID
+BENTO_USERNAME
+BENTO_PASSWORD
 ```
 
-1. Configure the SDK in the Livebook:
+These can be found in your Bento account under "Your Private API Keys".
 
-```elixir
-BentoSdk.configure(
-  site_uuid: "your-site-uuid",
-  username: "your-username",
-  password: "your-password"
-)
-```
-
-## Using Mocks
-
-If you don't have Bento credentials or want to test without making actual API calls, you can use the mock examples in [BentoSdk with Mocks](./bento_sdk_with_mocks.livemd).
+You can set these in your LiveBook Hub as environment variables or as secrets.
+If you set as LiveBook secrets, make sure you enable access to them in the LiveBook.

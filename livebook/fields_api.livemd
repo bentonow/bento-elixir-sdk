@@ -2,19 +2,18 @@
 
 ```elixir
 Mix.install([
-  {:bento_sdk, path: "../"},
-  {:kino, "~> 0.11.0"}
+  {:bento_sdk, "~> 0.1.0"}
 ])
 ```
 
 ## Introduction
 
-This notebook demonstrates how to use the BentoSdk to manage custom fields for subscribers in the Bento marketing platform. The Fields API allows you to:
+This notebook demonstrates how to use the BentoSdk to manage fields in the Bento marketing platform. The Fields API allows you to:
 
-- Add custom fields to subscribers
-- Remove custom fields from subscribers
+* Get all fields in your account
+* Create new fields
 
-Custom fields allow you to store additional information about your subscribers beyond the standard email and name fields.
+Fields are simple named key-value pairs, think of them as form fields.
 
 ## Configuration
 
@@ -29,33 +28,13 @@ BentoSdk.configure(
 )
 ```
 
-## Adding Custom Fields
+## Getting Fields
 
-Let's add a custom field to a subscriber:
-
-```elixir
-# Example of adding a custom field to a subscriber
-email = "example@example.com"
-field = "favorite_color"
-value = "blue"
-
-case BentoSdk.add_field(email, field, value) do
-  {:ok, result} ->
-    result
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Getting Custom Fields
-
-Let's get all custom fields for a subscriber:
+You can get all fields in your account:
 
 ```elixir
-# Example of getting custom fields for a subscriber
-email = "example@example.com"
-
-case BentoSdk.get_fields(email) do
+# Example of getting all fields
+case BentoSdk.Fields.get() do
   {:ok, fields} ->
     fields
   {:error, reason} ->
@@ -63,105 +42,35 @@ case BentoSdk.get_fields(email) do
 end
 ```
 
-## Updating Custom Fields
+## Creating Fields
 
-Let's update a custom field for a subscriber:
+You can create a new field in your account:
 
 ```elixir
-# Example of updating a custom field for a subscriber
-email = "example@example.com"
-field = "favorite_color"
-value = "green"
+# Example of creating a new field
+field_key = "company"
 
-case BentoSdk.update_field(email, field, value) do
-  {:ok, result} ->
-    result
+case BentoSdk.Fields.create(field_key) do
+  {:ok, field} ->
+    field
   {:error, reason} ->
     "Error: #{reason}"
 end
 ```
 
-## Removing Custom Fields
+## Field Structure
 
-Let's remove a custom field from a subscriber:
+The field structure returned by the API includes:
 
 ```elixir
-# Example of removing a custom field from a subscriber
-email = "example@example.com"
-field = "favorite_color"
-
-case BentoSdk.remove_field(email, field) do
-  {:ok, result} ->
-    result
-  {:error, reason} ->
-    "Error: #{reason}"
-end
+# Example field structure
+%{
+  "id" => "1234",
+  "type" => "fields",
+  "attributes" => %{
+    "key" => "company",
+    "created_at" => "2024-08-06T05:44:04.444Z",
+    "discarded_at" => nil
+  }
+}
 ```
-
-## Finding Subscribers by Field
-
-Let's find all subscribers with a specific field value:
-
-```elixir
-# Example of finding subscribers by field
-field = "favorite_color"
-value = "blue"
-
-case BentoSdk.find_by_field(field, value) do
-  {:ok, subscribers} ->
-    subscribers
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Example: Segmenting Subscribers by Custom Fields
-
-Here's an example of how you might use custom fields to segment your subscribers:
-
-```elixir
-# Example of segmenting subscribers by custom fields
-field = "subscription_tier"
-value = "premium"
-
-case BentoSdk.find_by_field(field, value) do
-  {:ok, subscribers} ->
-    # Send a special offer to premium subscribers
-    premium_subscribers = subscribers
-    
-    # Display the number of premium subscribers
-    %{
-      premium_subscriber_count: length(premium_subscribers),
-      premium_subscribers: premium_subscribers
-    }
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Example: Personalizing Content Based on Custom Fields
-
-Here's an example of how you might use custom fields to personalize content for a subscriber:
-
-```elixir
-# Example of personalizing content based on custom fields
-email = "example@example.com"
-
-case BentoSdk.get_fields(email) do
-  {:ok, fields} ->
-    # Extract relevant fields for personalization
-    favorite_color = fields["favorite_color"] || "blue"
-    subscription_tier = fields["subscription_tier"] || "basic"
-    
-    # Generate personalized content based on the fields
-    personalized_content = %{
-      email: email,
-      greeting: "Hello valued #{subscription_tier} subscriber!",
-      message: "We noticed your favorite color is #{favorite_color}. Check out our new #{favorite_color} products!",
-      special_offer: if(subscription_tier == "premium", do: "20% off your next purchase!", else: "10% off your next purchase!")
-    }
-    
-    personalized_content
-  {:error, reason} ->
-    "Error: #{reason}"
-end

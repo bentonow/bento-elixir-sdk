@@ -2,8 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:bento_sdk, path: "./Projects/XenoCode/bento_sdk"},
-  {:kino, "~> 0.11.0"}
+  {:bento_sdk, "~> 0.1.0"}
 ])
 ```
 
@@ -11,10 +10,9 @@ Mix.install([
 
 This notebook demonstrates how to use the BentoSdk to retrieve statistics from the Bento marketing platform. The Stats API allows you to:
 
-* Get subscriber growth statistics
-* Get email engagement statistics
-* Get tag statistics
-* Get event statistics
+* Get site statistics
+* Get segment statistics
+* Get report statistics
 
 These statistics can help you understand the performance of your marketing efforts.
 
@@ -31,16 +29,13 @@ BentoSdk.configure(
 )
 ```
 
-## Getting Subscriber Growth Statistics
+## Getting Site Statistics
 
-Let's get subscriber growth statistics:
+Let's get overall site statistics:
 
 ```elixir
-# Example of getting subscriber growth statistics
-start_date = "2023-01-01"
-end_date = "2023-12-31"
-
-case BentoSdk.get_subscriber_growth(start_date, end_date) do
+# Example of getting site statistics
+case BentoSdk.Stats.get_site() do
   {:ok, stats} ->
     stats
   {:error, reason} ->
@@ -48,16 +43,15 @@ case BentoSdk.get_subscriber_growth(start_date, end_date) do
 end
 ```
 
-## Getting Email Statistics
+## Getting Segment Statistics
 
-Let's get email statistics:
+Let's get statistics for a specific segment:
 
 ```elixir
-# Example of getting email statistics
-start_date = "2023-01-01"
-end_date = "2023-12-31"
+# Example of getting segment statistics
+segment_id = "your_segment_id"
 
-case BentoSdk.get_email_stats(start_date, end_date) do
+case BentoSdk.Stats.get_segment(segment_id) do
   {:ok, stats} ->
     stats
   {:error, reason} ->
@@ -65,264 +59,18 @@ case BentoSdk.get_email_stats(start_date, end_date) do
 end
 ```
 
-## Getting Tag Statistics
+## Getting Report Statistics
 
-Let's get tag statistics:
+Let's get data for a specific report:
 
 ```elixir
-# Example of getting tag statistics
-tag_name = "newsletter"
-start_date = "2023-01-01"
-end_date = "2023-12-31"
+# Example of getting report statistics
+report_id = "your_report_id"
 
-case BentoSdk.get_tag_stats(tag_name, start_date, end_date) do
+case BentoSdk.Stats.get_report(report_id) do
   {:ok, stats} ->
     stats
   {:error, reason} ->
     "Error: #{reason}"
 end
 ```
-
-## Getting Broadcast Statistics
-
-Let's get broadcast statistics:
-
-```elixir
-# Example of getting broadcast statistics
-broadcast_id = "example_broadcast_id"
-
-case BentoSdk.get_broadcast_stats(broadcast_id) do
-  {:ok, stats} ->
-    stats
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Example: Analyzing Subscriber Growth Trends
-
-Here's an example of how you might analyze subscriber growth trends:
-
-```elixir
-# Example of analyzing subscriber growth trends
-current_year = "2023"
-previous_year = "2022"
-
-# Get growth stats for current year
-current_year_result = BentoSdk.get_subscriber_growth("#{current_year}-01-01", "#{current_year}-12-31")
-
-# Get growth stats for previous year
-previous_year_result = BentoSdk.get_subscriber_growth("#{previous_year}-01-01", "#{previous_year}-12-31")
-
-# Process results
-case {current_year_result, previous_year_result} do
-  {{:ok, current_stats}, {:ok, previous_stats}} ->
-    # Calculate year-over-year growth
-    current_total = current_stats["total"] || 0
-    previous_total = previous_stats["total"] || 0
-    
-    growth_percentage = if previous_total > 0 do
-      ((current_total - previous_total) / previous_total) * 100
-    else
-      0
-    end
-    
-    # Analyze monthly trends
-    current_months = current_stats["months"] || []
-    previous_months = previous_stats["months"] || []
-    
-    # Create a month-by-month comparison
-    month_comparison = Enum.map(1..12, fn month ->
-      month_str = String.pad_leading("#{month}", 2, "0")
-      
-      current_month_data = Enum.find(current_months, %{"subscribers" => 0}, fn m -> 
-        m["month"] == "#{current_year}-#{month_str}" 
-      end)
-      
-      previous_month_data = Enum.find(previous_months, %{"subscribers" => 0}, fn m -> 
-        m["month"] == "#{previous_year}-#{month_str}" 
-      end)
-      
-      current_subscribers = current_month_data["subscribers"] || 0
-      previous_subscribers = previous_month_data["subscribers"] || 0
-      
-      month_growth = if previous_subscribers > 0 do
-        ((current_subscribers - previous_subscribers) / previous_subscribers) * 100
-      else
-        0
-      end
-      
-      %{
-        month: month_str,
-        current_year: current_subscribers,
-        previous_year: previous_subscribers,
-        growth_percentage: month_growth
-      }
-    end)
-    
-    %{
-      current_year: current_year,
-      previous_year: previous_year,
-      current_total: current_total,
-      previous_total: previous_total,
-      year_over_year_growth: growth_percentage,
-      monthly_comparison: month_comparison
-    }
-  {{:error, reason}, _} ->
-    "Error getting current year stats: #{reason}"
-  {_, {:error, reason}} ->
-    "Error getting previous year stats: #{reason}"
-end
-```
-
-## Example: Email Performance Analysis
-
-Here's an example of how you might analyze email performance:
-
-```elixir
-# Example of analyzing email performance
-start_date = "2023-01-01"
-end_date = "2023-12-31"
-
-case BentoSdk.get_email_stats(start_date, end_date) do
-  {:ok, stats} ->
-    # Extract key metrics
-    total_sent = stats["total_sent"] || 0
-    total_opened = stats["total_opened"] || 0
-    total_clicked = stats["total_clicked"] || 0
-    
-    # Calculate performance metrics
-    open_rate = if total_sent > 0 do
-      (total_opened / total_sent) * 100
-    else
-      0
-    end
-    
-    click_rate = if total_sent > 0 do
-      (total_clicked / total_sent) * 100
-    else
-      0
-    end
-    
-    click_to_open_rate = if total_opened > 0 do
-      (total_clicked / total_opened) * 100
-    else
-      0
-    end
-    
-    # Analyze daily performance
-    daily_stats = stats["days"] || []
-    
-    # Find best and worst performing days
-    sorted_by_open_rate = Enum.sort_by(daily_stats, fn day -> 
-      sent = day["sent"] || 0
-      opened = day["opened"] || 0
-      if sent > 0, do: opened / sent, else: 0
-    end, :desc)
-    
-    best_day = List.first(sorted_by_open_rate)
-    worst_day = List.last(sorted_by_open_rate)
-    
-    %{
-      period: "#{start_date} to #{end_date}",
-      total_sent: total_sent,
-      total_opened: total_opened,
-      total_clicked: total_clicked,
-      open_rate: open_rate,
-      click_rate: click_rate,
-      click_to_open_rate: click_to_open_rate,
-      best_performing_day: best_day,
-      worst_performing_day: worst_day
-    }
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Example: Campaign Effectiveness Analysis
-
-Here's an example of how you might analyze the effectiveness of a marketing campaign:
-
-```elixir
-# Example of analyzing campaign effectiveness
-campaign_tag = "summer_campaign"
-start_date = "2023-06-01"
-end_date = "2023-08-31"
-
-# Get tag stats for the campaign
-tag_result = BentoSdk.get_tag_stats(campaign_tag, start_date, end_date)
-
-# Get overall email stats for the same period
-email_result = BentoSdk.get_email_stats(start_date, end_date)
-
-# Process results
-case {tag_result, email_result} do
-  {{:ok, tag_stats}, {:ok, email_stats}} ->
-    # Extract key metrics
-    campaign_subscribers = tag_stats["subscribers"] || 0
-    campaign_emails_sent = tag_stats["emails_sent"] || 0
-    campaign_emails_opened = tag_stats["emails_opened"] || 0
-    campaign_emails_clicked = tag_stats["emails_clicked"] || 0
-    
-    overall_emails_sent = email_stats["total_sent"] || 0
-    overall_emails_opened = email_stats["total_opened"] || 0
-    overall_emails_clicked = email_stats["total_clicked"] || 0
-    
-    # Calculate performance metrics
-    campaign_open_rate = if campaign_emails_sent > 0 do
-      (campaign_emails_opened / campaign_emails_sent) * 100
-    else
-      0
-    end
-    
-    campaign_click_rate = if campaign_emails_sent > 0 do
-      (campaign_emails_clicked / campaign_emails_sent) * 100
-    else
-      0
-    end
-    
-    overall_open_rate = if overall_emails_sent > 0 do
-      (overall_emails_opened / overall_emails_sent) * 100
-    else
-      0
-    end
-    
-    overall_click_rate = if overall_emails_sent > 0 do
-      (overall_emails_clicked / overall_emails_sent) * 100
-    else
-      0
-    end
-    
-    # Compare campaign performance to overall performance
-    open_rate_difference = campaign_open_rate - overall_open_rate
-    click_rate_difference = campaign_click_rate - overall_click_rate
-    
-    %{
-      campaign: campaign_tag,
-      period: "#{start_date} to #{end_date}",
-      campaign_metrics: %{
-        subscribers: campaign_subscribers,
-        emails_sent: campaign_emails_sent,
-        open_rate: campaign_open_rate,
-        click_rate: campaign_click_rate
-      },
-      overall_metrics: %{
-        emails_sent: overall_emails_sent,
-        open_rate: overall_open_rate,
-        click_rate: overall_click_rate
-      },
-      comparison: %{
-        open_rate_difference: open_rate_difference,
-        click_rate_difference: click_rate_difference,
-        performance_summary: if open_rate_difference > 0 and click_rate_difference > 0 do
-          "Campaign outperformed overall average"
-        else
-          "Campaign underperformed compared to overall average"
-        end
-      }
-    }
-  {{:error, reason}, _} ->
-    "Error getting tag stats: #{reason}"
-  {_, {:error, reason}} ->
-    "Error getting email stats: #{reason}"
-end

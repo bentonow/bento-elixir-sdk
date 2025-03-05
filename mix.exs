@@ -1,17 +1,21 @@
 defmodule BentoSdk.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/abradburne/bento-elixir-sdk"
+
   def project do
     [
       app: :bento_sdk,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
+      homepage_url: "https://bentonow.com/",
       package: package(),
-      name: "BentoSdk",
-      source_url: "https://github.com/abradburne/bento_elixir_sdk"
+      name: "BentoSDK",
+      source_url: @source_url
     ]
   end
 
@@ -38,8 +42,14 @@ defmodule BentoSdk.MixProject do
 
   defp package do
     [
+      name: "bento_sdk",
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/abradburne/bento_elixir_sdk"}
+      links: %{
+        "GitHub" => @source_url,
+        "Documentation" => "https://hexdocs.pm/bento_sdk"
+      },
+      maintainers: ["Alan Bradburne"],
+      files: ~w(lib mix.exs README.md LICENSE)
     ]
   end
 end

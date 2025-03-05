@@ -2,8 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:bento_sdk, path: "./Projects/XenoCode/bento_sdk"},
-  {:kino, "~> 0.11.0"}
+  {:bento_sdk, "~> 0.1.0"}
 ])
 ```
 
@@ -39,7 +38,7 @@ Let's find a subscriber by email:
 # Example of finding a subscriber
 email = "example@example.com"
 
-case BentoSdk.find_subscriber(email) do
+case BentoSdk.Subscribers.find(email) do
   {:ok, nil} ->
     "Subscriber not found"
   {:ok, subscriber} ->
@@ -57,7 +56,7 @@ Now let's create a new subscriber:
 # Example of creating a subscriber
 email = "new_user@example.com"
 
-case BentoSdk.create_subscriber(email) do
+case BentoSdk.Subscribers.create(email) do
   {:ok, subscriber} ->
     subscriber
   {:error, reason} ->
@@ -73,7 +72,7 @@ This is a common operation that will find a subscriber if they exist, or create 
 # Example of finding or creating a subscriber
 email = "user@example.com"
 
-case BentoSdk.find_or_create_subscriber(email) do
+case BentoSdk.Subscribers.find_or_create(email) do
   {:ok, subscriber} ->
     subscriber
   {:error, reason} ->
@@ -100,7 +99,7 @@ subscribers = [
   }
 ]
 
-case BentoSdk.import_subscribers(subscribers) do
+case BentoSdk.Subscribers.import(subscribers) do
   {:ok, result} ->
     result
   {:error, reason} ->
@@ -117,9 +116,9 @@ You can change a subscriber's email address:
 old_email = "old_email@example.com"
 new_email = "new_email@example.com"
 
-case BentoSdk.change_email(old_email, new_email) do
-  {:ok, result} ->
-    result
+case BentoSdk.Subscribers.change_email(old_email, new_email) do
+  {:ok, subscriber} ->
+    subscriber
   {:error, reason} ->
     "Error: #{reason}"
 end
@@ -133,10 +132,10 @@ You can subscribe or unsubscribe users:
 # Example of subscribing a user
 email = "user@example.com"
 
-case BentoSdk.subscribe(email) do
-  {:ok, result} -> 
-    result
-  {:error, reason} -> 
+case BentoSdk.Subscribers.subscribe(email) do
+  {:ok, subscriber} ->
+    subscriber
+  {:error, reason} ->
     "Error: #{reason}"
 end
 ```
@@ -145,10 +144,10 @@ end
 # Example of unsubscribing a user
 email = "user@example.com"
 
-case BentoSdk.unsubscribe(email) do
-  {:ok, result} -> 
-    result
-  {:error, reason} -> 
+case BentoSdk.Subscribers.unsubscribe(email) do
+  {:ok, subscriber} ->
+    subscriber
+  {:error, reason} ->
     "Error: #{reason}"
 end
 ```
@@ -163,7 +162,7 @@ command = "get_subscriber_details"
 email = "user@example.com"
 query = %{include_tags: true, include_fields: true}
 
-case BentoSdk.run_command(command, email, query) do
+case BentoSdk.Subscribers.run_command(command, email, query) do
   {:ok, result} ->
     result
   {:error, reason} ->
@@ -180,12 +179,12 @@ Here's an example of how you might handle a newsletter signup:
 email = "newsletter_signup@example.com"
 
 # First, check if the subscriber already exists
-subscriber_result = BentoSdk.find_subscriber(email)
+subscriber_result = BentoSdk.Subscribers.find(email)
 
 case subscriber_result do
   {:ok, nil} ->
     # Subscriber doesn't exist, create a new one
-    case BentoSdk.create_subscriber(email) do
+    case BentoSdk.Subscribers.create(email) do
       {:ok, subscriber} ->
         %{
           status: "success",
@@ -202,7 +201,7 @@ case subscriber_result do
     # Subscriber exists, update their tags
     existing_tags = existing_subscriber["tags"] || []
     new_tags = ["newsletter", "website_signup"] -- existing_tags
-    
+
     if Enum.empty?(new_tags) do
       %{
         status: "success",
@@ -211,7 +210,7 @@ case subscriber_result do
       }
     else
       # Add the new tags
-      case BentoSdk.add_tags(email, new_tags) do
+      case BentoSdk.Subscribers.add_tags(email, new_tags) do
         {:ok, updated_subscriber} ->
           %{
             status: "success",
@@ -274,7 +273,7 @@ end)
 unique_subscribers = Enum.uniq_by(validated_subscribers, & &1.email)
 
 # Import the validated and deduplicated subscribers
-case BentoSdk.import_subscribers(unique_subscribers) do
+case BentoSdk.Subscribers.import(unique_subscribers) do
   {:ok, result} ->
     %{
       status: "success",
@@ -294,5 +293,3 @@ case BentoSdk.import_subscribers(unique_subscribers) do
     }
 end
 ```
-
-<!-- livebook:{"offset":6990,"stamp":{"token":"XCP.20arAV1bfCudwN8vJA_dpM6eddk-kdcoGMuvKl9qOiEaDGheBfRWxzayyU7qah_lau5YRSRnmVHKrQLds1zLiZpl7RKkIf5TooqmxaDAyeMhGx8i-7_7Inj7KqOEoW7UulKaPEVZbpxWE9b7LDBSHQgb_MPiBo-gFIre0YMPU3I","version":2}} -->

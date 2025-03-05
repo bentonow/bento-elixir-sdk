@@ -44,6 +44,20 @@ defmodule BentoSdk.ClientBehaviour do
   @callback change_email(old_email :: String.t(), new_email :: String.t()) ::
               {:ok, map()} | {:error, String.t()}
               
+  # Tag methods
+  @callback get_tags() ::
+              {:ok, list(map())} | {:error, String.t()}
+              
+  @callback create_tag(name :: String.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  # Field methods
+  @callback get_fields() ::
+              {:ok, list(map())} | {:error, String.t()}
+              
+  @callback create_field(key :: String.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
   # Event methods
   @callback track_event(email :: String.t(), type :: String.t(), fields :: map(), details :: map()) ::
               {:ok, map()} | {:error, String.t()}
@@ -58,17 +72,10 @@ defmodule BentoSdk.ClientBehaviour do
   @callback send_transactional_email(to :: String.t(), from :: String.t(), subject :: String.t(), html_body :: String.t(), personalizations :: map()) ::
               {:ok, map()} | {:error, String.t()}
               
-  # Spam API methods
-  @callback email_valid?(email :: String.t()) ::
-              {:ok, boolean()} | {:error, String.t()}
+  @callback send_bulk_emails(emails :: list(map())) ::
+              {:ok, map()} | {:error, String.t()}
               
-  @callback email_risky?(email :: String.t()) ::
-              {:ok, boolean()} | {:error, String.t()}
-              
-  @callback jesses_ruleset_reasons(email :: String.t(), opts :: keyword()) ::
-              {:ok, list(String.t())} | {:error, String.t()}
-              
-  # Utility API methods
+  # Utility methods
   @callback moderate_content(content :: String.t()) ::
               {:ok, map()} | {:error, String.t()}
               
@@ -76,5 +83,34 @@ defmodule BentoSdk.ClientBehaviour do
               {:ok, map()} | {:error, String.t()}
               
   @callback geolocate(ip_address :: String.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  @callback validate_email(email :: String.t(), opts :: Keyword.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  @callback jesses_ruleset(email :: String.t(), opts :: Keyword.t()) ::
+              {:ok, list(String.t())} | {:error, String.t()}
+              
+  @callback check_blacklist(params :: map()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  # Stats methods
+  @callback get_site_stats() ::
+              {:ok, map()} | {:error, String.t()}
+              
+  @callback get_segment_stats(segment_id :: String.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  @callback get_report_stats(report_id :: String.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  @callback get_subscriber_growth(start_date :: String.t(), end_date :: String.t()) ::
+              {:ok, map()} | {:error, String.t()}
+              
+  # Broadcast methods
+  @callback get_broadcasts() ::
+              {:ok, list(map())} | {:error, String.t()}
+              
+  @callback create_broadcasts(broadcasts :: list(map())) ::
               {:ok, map()} | {:error, String.t()}
 end

@@ -2,8 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:bento_sdk, path: "../"},
-  {:kino, "~> 0.11.0"},
+  {:bento_sdk, "~> 0.1.0"},
   {:jason, "~> 1.2"}
 ])
 ```
@@ -12,8 +11,8 @@ Mix.install([
 
 This notebook demonstrates how to use the BentoSdk to work with events in the Bento marketing platform. The Events API allows you to:
 
-- Track individual events
-- Import events in bulk
+* Track individual events
+* Import events in bulk
 
 Events are a powerful way to track user behavior and trigger automations in Bento.
 
@@ -35,15 +34,11 @@ BentoSdk.configure(
 Let's track an event for a subscriber:
 
 ```elixir
-# Example of tracking an event
+# Example of tracking a basic event
 email = "example@example.com"
-type = "page_view"
-data = %{
-  "url" => "https://example.com/products/123",
-  "referrer" => "https://google.com"
-}
+type = "page_viewed"
 
-case BentoSdk.track_event(email, type, data) do
+case BentoSdk.Events.track(email, type) do
   {:ok, result} ->
     result
   {:error, reason} ->
@@ -51,31 +46,61 @@ case BentoSdk.track_event(email, type, data) do
 end
 ```
 
-## Listing Events
+## Tracking Events with Fields
 
-You can list events for a subscriber:
+You can include additional fields with your events:
 
 ```elixir
-# Example of listing events
+# Example of tracking an event with fields
 email = "example@example.com"
+type = "page_viewed"
+fields = %{
+  "page" => "/products/123",
+  "referrer" => "https://google.com"
+}
 
-case BentoSdk.list_events(email) do
-  {:ok, events} ->
-    events
+case BentoSdk.Events.track(email, type, fields) do
+  {:ok, result} ->
+    result
   {:error, reason} ->
     "Error: #{reason}"
 end
 ```
 
-## Listing Event Types
+## Tracking Events with Fields and Details
 
-You can also list all event types that have been tracked:
+For more complex events, you can include both fields and details:
 
 ```elixir
-# Example of listing event types
-case BentoSdk.list_event_types() do
-  {:ok, event_types} ->
-    event_types
+# Example of tracking a complex event
+email = "example@example.com"
+type = "$purchase"
+fields = %{
+  "first_name" => "Jesse"
+}
+details = %{
+  "unique" => %{
+    "key" => "order_123"
+  },
+  "value" => %{
+    "currency" => "USD",
+    "amount" => 8000
+  },
+  "cart" => %{
+    "items" => [
+      %{
+        "product_sku" => "SKU123",
+        "product_name" => "Test Product",
+        "quantity" => 1
+      }
+    ],
+    "abandoned_checkout_url" => "https://example.com/cart"
+  }
+}
+
+case BentoSdk.Events.track(email, type, fields, details) do
+  {:ok, result} ->
+    result
   {:error, reason} ->
     "Error: #{reason}"
 end
@@ -85,51 +110,11 @@ end
 
 Here are some common event types you might want to track:
 
-- `page_viewed` - User viewed a page
-- `product_viewed` - User viewed a product
-- `product_added_to_cart` - User added a product to cart
-- `checkout_started` - User started checkout
-- `order_completed` - User completed an order
-- `form_submitted` - User submitted a form
-
-## Example: Track Page View
-
-```elixir
-# Example of tracking a page view
-email = "example@example.com"
-type = "page_viewed"
-data = %{
-  "url" => "https://example.com/products/123",
-  "referrer" => "https://google.com"
-}
-
-case BentoSdk.track_event(email, type, data) do
-  {:ok, result} ->
-    result
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Example: Track Product View
-
-```elixir
-# Example of tracking a product view
-email = "example@example.com"
-type = "product_viewed"
-data = %{
-  "product_id" => "123",
-  "name" => "Example Product",
-  "price" => "19.99"
-}
-
-case BentoSdk.track_event(email, type, data) do
-  {:ok, result} ->
-    result
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
+* `page_viewed` - User viewed a page
+* `$purchase` - User completed a purchase
+* `$completed_onboarding` - User completed onboarding
+* `$cart_updated` - User updated their cart
+* `$form_submitted` - User submitted a form
 
 ## Importing Events in Bulk
 
@@ -139,27 +124,32 @@ You can import multiple events at once:
 # Example of importing events in bulk
 events = [
   %{
-    email: "example@example.com",
+    email: "user1@example.com",
     type: "page_viewed",
     fields: %{
-      "url" => "https://example.com/products/123",
+      "page" => "/products/123",
       "referrer" => "https://google.com"
     }
   },
   %{
-    email: "example@example.com",
-    type: "product_viewed",
+    email: "user2@example.com",
+    type: "$purchase",
     fields: %{
-      "product_id" => "123",
-      "name" => "Example Product",
-      "price" => "19.99"
+      "first_name" => "Jane"
+    },
+    details: %{
+      "value" => %{
+        "currency" => "USD",
+        "amount" => 4999
+      }
     }
   }
 ]
 
-case BentoSdk.import_events(events) do
+case BentoSdk.Events.import_events(events) do
   {:ok, result} ->
     result
   {:error, reason} ->
     "Error: #{reason}"
 end
+```

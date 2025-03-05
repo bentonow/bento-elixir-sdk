@@ -2,8 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:bento_sdk, path: "../"},
-  {:kino, "~> 0.11.0"}
+  {:bento_sdk, "~> 0.1.0"}
 ])
 ```
 
@@ -14,6 +13,9 @@ This notebook demonstrates how to use the BentoSdk's Utility API methods in the 
 * Moderate content for profanity and inappropriate content
 * Guess the gender of a name
 * Geolocate an IP address
+* Validate email addresses
+* Check email addresses against Jesse's ruleset
+* Check domains and IP addresses against blacklists
 
 These utility functions can help enhance your marketing campaigns with additional intelligence.
 
@@ -38,7 +40,7 @@ The content moderation API helps you check user-generated content for profanity 
 # Example of moderating content
 content = "This is some sample content to check for moderation."
 
-case BentoSdk.moderate_content(content) do
+case BentoSdk.Utility.moderate_content(content) do
   {:ok, result} ->
     result
   {:error, reason} ->
@@ -54,7 +56,7 @@ The gender guessing API helps you make educated guesses about a person's gender 
 # Example of guessing gender from a name
 name = "Alex"
 
-case BentoSdk.guess_gender(name) do
+case BentoSdk.Utility.guess_gender(name) do
   {:ok, result} ->
     result
   {:error, reason} ->
@@ -70,9 +72,51 @@ The IP geolocation API helps you determine the geographic location of an IP addr
 # Example of geolocating an IP address
 ip_address = "8.8.8.8"
 
-case BentoSdk.geolocate(ip_address) do
+case BentoSdk.Utility.geolocate(ip_address) do
   {:ok, result} ->
     result
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Email Validation
+
+The email validation API helps you validate email addresses beyond simple format validation.
+
+```elixir
+# Example of validating an email address
+email = "test@example.com"
+
+case BentoSdk.Utility.validate_email(email) do
+  {:ok, result} ->
+    if result["valid"] do
+      "Email is valid"
+    else
+      "Email is invalid"
+    end
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+You can also provide additional information to improve validation:
+
+```elixir
+# Example of validating an email with additional information
+email = "test@example.com"
+opts = [
+  name: "John Doe",
+  ip: "8.8.8.8"
+]
+
+case BentoSdk.Utility.validate_email(email, opts) do
+  {:ok, result} ->
+    if result["valid"] do
+      "Email is valid"
+    else
+      "Email is invalid"
+    end
   {:error, reason} ->
     "Error: #{reason}"
 end
@@ -85,14 +129,52 @@ Jesse's ruleset is a set of rules for validating email addresses beyond simple f
 ```elixir
 # Example of checking an email against Jesse's ruleset
 email = "test@example.com"
-opts = [ruleset: "standard"]
+opts = [block_free_providers: false, wiggleroom: true]
 
-case BentoSdk.jesses_ruleset_reasons(email, opts) do
+case BentoSdk.Utility.jesses_ruleset(email, opts) do
   {:ok, reasons} ->
     if Enum.empty?(reasons) do
       "Email is valid"
     else
       "Email is invalid: #{Enum.join(reasons, ", ")}"
+    end
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+## Blacklist Checking
+
+The blacklist checking API helps you determine if a domain or IP address is on any blacklists.
+
+```elixir
+# Example of checking a domain against blacklists
+params = %{domain: "example.com"}
+
+case BentoSdk.Utility.check_blacklist(params) do
+  {:ok, result} ->
+    blacklisted = Enum.any?(Map.values(result["results"]), fn value -> value == true end)
+    if blacklisted do
+      "Domain is on at least one blacklist"
+    else
+      "Domain is not on any blacklists"
+    end
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
+```elixir
+# Example of checking an IP address against blacklists
+params = %{ip_address: "8.8.8.8"}
+
+case BentoSdk.Utility.check_blacklist(params) do
+  {:ok, result} ->
+    blacklisted = Enum.any?(Map.values(result["results"]), fn value -> value == true end)
+    if blacklisted do
+      "IP address is on at least one blacklist"
+    else
+      "IP address is not on any blacklists"
     end
   {:error, reason} ->
     "Error: #{reason}"
@@ -105,11 +187,11 @@ Here's an example of how you might use the content moderation API to check user 
 
 ```elixir
 # Example of moderating a user review
-review = "This product is amazing! I love it so much."
+review = "This product is spam@example.com! I love it so much."
 
-case BentoSdk.moderate_content(review) do
+case BentoSdk.Utility.moderate_content(review) do
   {:ok, result} ->
-    if result["safe"] do
+    if result["valid"] do
       # If the review is safe, we can publish it
       %{
         status: "approved",
@@ -122,7 +204,7 @@ case BentoSdk.moderate_content(review) do
       %{
         status: "error",
         message: "Review contains inappropriate content",
-        categories: result["categories"]
+        reasons: result["reasons"]
       }
     end
   {:error, reason} ->
@@ -138,10 +220,10 @@ Here's an example of how you might use the geolocation API to personalize an ema
 # Example of geolocating an IP address
 ip_address = "8.8.8.8"
 
-case BentoSdk.geolocate(ip_address) do
+case BentoSdk.Utility.geolocate(ip_address) do
   {:ok, result} ->
-    city = result["city"] || "your city"
-    country = result["country"] || "your country"
+    city = result["city_name"] || "your city"
+    country = result["country_name"] || "your country"
 
     # Create email content
     subject = "Special Offers for #{city}, #{country}"
@@ -150,16 +232,11 @@ case BentoSdk.geolocate(ip_address) do
     <html>
     <body>
       <h1>Hello!</h1>
-      <p>We noticed you're from #{city}, #{country}. We have some special offers just for your area!</p>
-      <h2>Local Deals</h2>
+      <p>We noticed you're from #{city}, #{country}.</p>
       <p>Check out these deals specifically for #{city}:</p>
       <ul>
         <li>Special Discount 1</li>
-        <li>Special Discount 2</li>
-        <li>Special Discount 3</li>
       </ul>
-      <p>Click <a href="https://example.com/deals/#{String.downcase(city)}">here</a> to see all deals in your area.</p>
-      <p>Best regards,<br>The Team</p>
     </body>
     </html>
     """
@@ -174,34 +251,3 @@ case BentoSdk.geolocate(ip_address) do
     "Error: #{reason}"
 end
 ```
-
-## Example: Personalized Greeting Based on Name Gender
-
-Here's an example of how you might use the gender guessing API to personalize a greeting:
-
-```elixir
-# Example of guessing gender from a name
-name = "Alex"
-
-case BentoSdk.guess_gender(name) do
-  {:ok, result} ->
-    gender = result["gender"]
-    probability = result["probability"]
-
-    # Generate a personalized greeting based on the gender
-    greeting = cond do
-      gender == "male" && probability > 0.7 ->
-        "Hello Mr. #{name}!"
-      gender == "female" && probability > 0.7 ->
-        "Hello Ms. #{name}!"
-      true ->
-        "Hello #{name}!"
-    end
-
-    %{
-      greeting: greeting,
-      gender_data: result
-    }
-  {:error, reason} ->
-    "Error: #{reason}"
-end
