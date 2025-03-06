@@ -52,7 +52,7 @@ defmodule BentoSdk.Subscribers do
 
   @doc """
   Update a subscriber with the given attributes.
-  
+
   This uses the Import Subscribers endpoint to update a single subscriber.
 
   ## Examples
@@ -66,9 +66,35 @@ defmodule BentoSdk.Subscribers do
   def update(email, attributes) do
     # Create a subscriber map with email and attributes
     subscriber = Map.put(attributes, :email, email)
-    
+
     # Use the import_subscribers endpoint with a single subscriber
     client().import_subscribers([subscriber])
+  end
+
+  @doc """
+  Import Subscribers
+
+  ## Examples
+
+      BentoSdk.Subscribers.import([
+        %{
+          email: "user@example.com",
+          first_name: "Billy",
+          last_name: "Bob"
+        },
+        %{
+          email: "user2@example.com",
+          first_name: "Sarah",
+          last_name: "Smith"
+        }
+      ])
+      {:ok, %{
+        "failed" => 0,
+        "results" => 2
+      }}
+  """
+  def import(subscribers) do
+    client().import_subscribers(subscribers)
   end
 
   @doc """
@@ -125,6 +151,22 @@ defmodule BentoSdk.Subscribers do
   """
   def add_tag(email, tag) do
     client().add_tag(email, tag)
+  end
+
+  @doc """
+  Add multiple tags to a subscriber.
+
+  ## Examples
+
+      BentoSdk.Subscribers.add_tags("user@example.com", ["vip", "new"])
+      {:ok, %{
+        "success" => true
+      }}
+  """
+  def add_tags(email, tags) do
+    Enum.each(tags, fn tag ->
+      client().add_tag(email, tag)
+    end)
   end
 
   @doc """

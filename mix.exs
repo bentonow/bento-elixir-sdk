@@ -49,7 +49,7 @@ defmodule BentoSdk.MixProject do
         "Documentation" => "https://hexdocs.pm/bento_sdk"
       },
       maintainers: ["Alan Bradburne"],
-      files: ~w(lib mix.exs README.md LICENSE)
+      files: ~w(lib mix.exs README.md LICENSE.md CHANGELOG.md)
     ]
   end
 end

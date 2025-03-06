@@ -124,6 +124,23 @@ case BentoSdk.Subscribers.change_email(old_email, new_email) do
 end
 ```
 
+## Updating Subscriber Attributes
+
+You can update a subscriber's attributes:
+
+```elixir
+# Example of updating a subscriber's attributes
+email = "user@example.com"
+attributes = %{first_name: "Alan", last_name: "Bradburne"}
+
+case BentoSdk.Subscribers.update(email, attributes) do
+  {:ok, subscriber} ->
+    subscriber
+  {:error, reason} ->
+    "Error: #{reason}"
+end
+```
+
 ## Subscribe/Unsubscribe
 
 You can subscribe or unsubscribe users:
@@ -147,24 +164,6 @@ email = "user@example.com"
 case BentoSdk.Subscribers.unsubscribe(email) do
   {:ok, subscriber} ->
     subscriber
-  {:error, reason} ->
-    "Error: #{reason}"
-end
-```
-
-## Running Custom Commands
-
-You can run custom commands on subscribers:
-
-```elixir
-# Example of running a custom command
-command = "get_subscriber_details"
-email = "user@example.com"
-query = %{include_tags: true, include_fields: true}
-
-case BentoSdk.Subscribers.run_command(command, email, query) do
-  {:ok, result} ->
-    result
   {:error, reason} ->
     "Error: #{reason}"
 end
@@ -199,7 +198,14 @@ case subscriber_result do
     end
   {:ok, existing_subscriber} ->
     # Subscriber exists, update their tags
-    existing_tags = existing_subscriber["tags"] || []
+
+    # Get existing tags
+    cached_tag_ids = existing_subscriber["attributes"]["cached_tag_ids"] || []
+    {:ok, tags} = BentoSdk.Tags.get()
+    existing_tags = Enum.map(cached_tag_ids, fn tag_id ->
+      tags |> Enum.find(fn tag -> tag["id"] == tag_id end) |> Map.get("attributes") |> Map.get("name")
+    end)
+
     new_tags = ["newsletter", "website_signup"] -- existing_tags
 
     if Enum.empty?(new_tags) do
