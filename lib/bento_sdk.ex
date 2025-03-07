@@ -6,7 +6,7 @@ defmodule BentoSdk do
 
   Add the following to your config.exs (or environment specific config file) to use environment variables:
 
-      config :bento_sdk,
+      config :bento_sdk, BentoSdk,
         site_uuid: System.get_env("BENTO_SITE_UUID", "your_site_uuid"),
         username: System.get_env("BENTO_USERNAME", "your_username"),
         password: System.get_env("BENTO_PASSWORD", "your_password")
