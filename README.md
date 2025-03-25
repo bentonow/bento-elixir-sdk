@@ -74,8 +74,8 @@ Configure the SDK in your `config.exs` (or environment-specific config file) usi
 ```elixir
 config :bento_sdk,
   site_uuid: System.get_env("BENTO_SITE_UUID", "your_site_uuid"),
-  username: System.get_env("BENTO_USERNAME", "your_username"),
-  password: System.get_env("BENTO_PASSWORD", "your_password")
+  username: System.get_env("BENTO_USERNAME", "bento-publishable-key"),
+  password: System.get_env("BENTO_PASSWORD", "bento-secret-key")
 ```
 
 Alternatively, you can set the configuration at runtime:
@@ -83,12 +83,12 @@ Alternatively, you can set the configuration at runtime:
 ```elixir
 BentoSdk.configure(
   site_uuid: "your-site-uuid",
-  username: "your-username",
-  password: "your-password"
+  username: "bento-publishable-key",
+  password: "bento-secret-key"
 )
 ```
 
-These credentials can be found under "Your Private API Keys" in your Bento account.
+These credentials can be found under "Your Account -> API Keys" in your [Bento account](https://app.bentonow.com/account/).
 
 ## Modules
 
