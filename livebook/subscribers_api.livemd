@@ -36,7 +36,7 @@ Let's find a subscriber by email:
 
 ```elixir
 # Example of finding a subscriber
-email = "example@example.com"
+email = "user@example.com"
 
 case BentoSdk.Subscribers.find(email) do
   {:ok, nil} ->

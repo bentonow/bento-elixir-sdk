@@ -57,7 +57,7 @@ Let's send a regular email:
 
 ```elixir
 # Example of sending a regular email
-to_email = "abradburne@gmail.com"
+to_email = "user@example.com"
 from_email = "sender@example.com"
 subject = "Hello from BentoSdk"
 html_body = "<h1>Hello!</h1><p>This is a test email from BentoSdk.</p>"

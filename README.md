@@ -19,7 +19,7 @@ end
 Configure the SDK in your `config.exs` (or environment-specific config file) using environment variables:
 
 ```elixir
-config :bento_sdk,
+config :bento_sdk, BentoSdk, 
   site_uuid: System.get_env("BENTO_SITE_UUID", "your_site_uuid"),
   username: System.get_env("BENTO_USERNAME", "your_username"),
   password: System.get_env("BENTO_PASSWORD", "your_password")
