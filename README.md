@@ -1,28 +1,81 @@
-# BentoSdk
 
-An Elixir SDK for the [Bento](https://bentonow.com/) email marketing and automation platform.
+# BentoSdk for Elixir
+<img align="right" src="https://app.bentonow.com/brand/logoanim.gif">
 
-## Installation
+> [!TIP]
+> Need help? Join our [Discord](https://discord.gg/ssXXFRmt5F) or email jesse@bentonow.com for personalized support.
+
+The Bento Elixir SDK makes it quick and easy to send emails and track events in your Elixir applications. We provide powerful and customizable APIs that can be used out-of-the-box to manage subscribers, track events, and send transactional emails. We also expose low-level APIs so that you can build fully custom experiences.
+
+❤️ Thank you [@abradburne](https://github.com/abradburne) for your contribution.
+
+Get started with our [📚 integration guides](https://docs.bentonow.com), or [📘 browse the SDK reference](https://docs.bentonow.com/subscribers).
+
+[![Hex.pm](https://img.shields.io/hexpm/v/bento_sdk.svg)](https://hex.pm/packages/bento_sdk)
+[![Hex.pm](https://img.shields.io/hexpm/dt/bento_sdk.svg)](https://hex.pm/packages/bento_sdk)
+[![Hex.pm](https://img.shields.io/hexpm/l/bento_sdk.svg)](https://github.com/bentonow/bento-elixir-sdk/blob/main/LICENSE.md)
+
+Table of contents
+=================
+
+<!--ts-->
+* [Features](#features)
+* [Requirements](#requirements)
+* [Getting started](#getting-started)
+    * [Installation](#installation)
+    * [Configuration](#configuration)
+* [Modules](#modules)
+    * [Subscriber Management](#subscriber-management)
+    * [Tag Management](#tag-management)
+    * [Field Management](#field-management)
+    * [Event Tracking](#event-tracking)
+    * [Email Sending](#email-sending)
+    * [Broadcasts](#broadcasts)
+    * [Stats](#stats)
+    * [Utility Functions](#utility-functions)
+* [Things to Know](#things-to-know)
+* [Contributing](#contributing)
+* [License](#license)
+<!--te-->
+
+## Features
+
+* **Subscriber Management**: Import and manage subscribers directly from your Elixir app.
+* **Event Tracking**: Easily track custom events and user behavior in your application.
+* **Email Sending**: Send both standard and transactional emails through Bento.
+* **API Access**: Full access to Bento's REST API for advanced operations.
+* **Utility Functions**: Helpful utilities for content moderation, email validation, and more.
+* **Broadcast Management**: Create and manage broadcast campaigns.
+
+## Requirements
+
+- Elixir ~> 1.14
+- Erlang/OTP compatible with your Elixir version
+- Bento API Keys
+
+## Getting started
+
+### Installation
 
 Add `bento_sdk` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:bento_sdk, "~> 0.1.0"}
+    {:bento_sdk, "~> 0.1.1"}
   ]
 end
 ```
 
-## Configuration
+### Configuration
 
 Configure the SDK in your `config.exs` (or environment-specific config file) using environment variables:
 
 ```elixir
 config :bento_sdk,
   site_uuid: System.get_env("BENTO_SITE_UUID", "your_site_uuid"),
-  username: System.get_env("BENTO_USERNAME", "your_username"),
-  password: System.get_env("BENTO_PASSWORD", "your_password")
+  username: System.get_env("BENTO_USERNAME", "bento-publishable-key"),
+  password: System.get_env("BENTO_PASSWORD", "bento-secret-key")
 ```
 
 Alternatively, you can set the configuration at runtime:
@@ -30,106 +83,221 @@ Alternatively, you can set the configuration at runtime:
 ```elixir
 BentoSdk.configure(
   site_uuid: "your-site-uuid",
-  username: "your-username",
-  password: "your-password"
+  username: "bento-publishable-key",
+  password: "bento-secret-key"
 )
 ```
 
-These credentials can be found under "Your Private API Keys" in your Bento account.
+These credentials can be found under "Your Account -> API Keys" in your [Bento account](https://app.bentonow.com/account/).
 
-## Usage
+## Modules
 
-The SDK is organized into modules by functionality:
+### Subscriber Management
 
-### Subscriber Methods
+#### Find a subscriber
 
 ```elixir
-# Find a subscriber
 {:ok, subscriber} = BentoSdk.Subscribers.find("user@example.com")
+```
 
-# Create a subscriber
+#### Create a subscriber
+
+```elixir
 {:ok, subscriber} = BentoSdk.Subscribers.create("user@example.com")
+```
 
-# Find or create a subscriber
+#### Find or create a subscriber
+
+```elixir
 {:ok, subscriber} = BentoSdk.Subscribers.find_or_create("user@example.com")
+```
 
-# Update a subscriber
+#### Update a subscriber
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.update("user@example.com", %{first_name: "John", last_name: "Doe"})
+```
 
-# Subscribe a user
+#### Import multiple subscribers
+
+```elixir
+subscribers = [
+  %{
+    email: "user1@example.com",
+    first_name: "John",
+    last_name: "Doe"
+  },
+  %{
+    email: "user2@example.com",
+    first_name: "Jane",
+    last_name: "Smith"
+  }
+]
+
+{:ok, result} = BentoSdk.Subscribers.import(subscribers)
+```
+
+#### Subscribe a user
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.subscribe("user@example.com")
+```
 
-# Unsubscribe a user
+#### Unsubscribe a user
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.unsubscribe("user@example.com")
+```
 
-# Change a subscriber's email
+#### Change a subscriber's email
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.change_email("old@example.com", "new@example.com")
 ```
 
-### Tag Methods
+#### Add a tag to a subscriber
 
 ```elixir
-# Get all tags
-{:ok, tags} = BentoSdk.Tags.get()
-
-# Create a new tag
-{:ok, tag} = BentoSdk.Tags.create("new_tag")
-
-# Add a tag to a subscriber
 {:ok, result} = BentoSdk.Subscribers.add_tag("user@example.com", "vip")
+```
 
-# Add a tag via an event
+#### Add multiple tags to a subscriber
+
+```elixir
+{:ok, result} = BentoSdk.Subscribers.add_tags("user@example.com", ["vip", "new"])
+```
+
+#### Add a tag via an event
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.add_tag_via_event("user@example.com", "vip")
+```
 
-# Remove a tag from a subscriber
+#### Remove a tag from a subscriber
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.remove_tag("user@example.com", "vip")
 ```
 
-### Field Methods
+#### Add a field to a subscriber
 
 ```elixir
-# Get all fields
-{:ok, fields} = BentoSdk.Fields.get()
-
-# Create a new field
-{:ok, field} = BentoSdk.Fields.create("company")
-
-# Add a field to a subscriber
 {:ok, result} = BentoSdk.Subscribers.add_field("user@example.com", "company", "Acme Inc.")
+```
 
-# Remove a field from a subscriber
+#### Remove a field from a subscriber
+
+```elixir
 {:ok, result} = BentoSdk.Subscribers.remove_field("user@example.com", "company")
 ```
 
-### Event Methods
+### Tag Management
+
+#### Get all tags
 
 ```elixir
-# Track an event
-{:ok, result} = BentoSdk.Events.track("user@example.com", "page_viewed", %{
-  page: "/products"
-}, %{
-  browser: "Chrome"
-})
+{:ok, tags} = BentoSdk.Tags.get()
+```
 
-# Import events in bulk
+#### Create a new tag
+
+```elixir
+{:ok, tag} = BentoSdk.Tags.create("new_tag")
+```
+
+### Field Management
+
+#### Get all fields
+
+```elixir
+{:ok, fields} = BentoSdk.Fields.get()
+```
+
+#### Create a new field
+
+```elixir
+{:ok, field} = BentoSdk.Fields.create("company")
+```
+
+### Event Tracking
+
+#### Track an event
+
+```elixir
+{:ok, result} = BentoSdk.Events.track(
+  "user@example.com",
+  "page_viewed",
+  %{
+    "page" => "/products",
+    "referrer" => "https://google.com"
+  }
+)
+```
+
+#### Track a purchase event
+
+```elixir
+{:ok, result} = BentoSdk.Events.track(
+  "user@example.com",
+  "$purchase",
+  %{
+    "first_name" => "Jesse"
+  },
+  %{
+    "unique" => %{
+      "key" => "order_123"
+    },
+    "value" => %{
+      "currency" => "USD",
+      "amount" => 8000
+    },
+    "cart" => %{
+      "items" => [
+        %{
+          "product_sku" => "SKU123",
+          "product_name" => "Test Product",
+          "quantity" => 1
+        }
+      ],
+      "abandoned_checkout_url" => "https://example.com/cart"
+    }
+  }
+)
+```
+
+#### Import events in bulk
+
+```elixir
 {:ok, result} = BentoSdk.Events.import_events([
   %{
     email: "user1@example.com",
     type: "page_viewed",
-    fields: %{page: "/products"}
+    fields: %{
+      "page" => "/products",
+      "referrer" => "https://google.com"
+    }
   },
   %{
     email: "user2@example.com",
-    type: "product_added_to_cart",
-    fields: %{product_id: "123"}
+    type: "$purchase",
+    fields: %{
+      "first_name" => "Jane"
+    },
+    details: %{
+      "value" => %{
+        "currency" => "USD",
+        "amount" => 4999
+      }
+    }
   }
 ])
 ```
 
-### Email Methods
+### Email Sending
+
+#### Send an email
 
 ```elixir
-# Send an email
 {:ok, result} = BentoSdk.Emails.send(
   "user@example.com",
   "noreply@yourdomain.com",
@@ -139,8 +307,11 @@ The SDK is organized into modules by functionality:
     "first_name" => "John"
   }
 )
+```
 
-# Send a transactional email
+#### Send a transactional email
+
+```elixir
 {:ok, result} = BentoSdk.Emails.send_transactional(
   "user@example.com",
   "noreply@yourdomain.com",
@@ -153,58 +324,149 @@ The SDK is organized into modules by functionality:
 )
 ```
 
-### Stats API Methods
+#### Send multiple emails in bulk
 
 ```elixir
-# Get site statistics
+{:ok, result} = BentoSdk.Emails.send_bulk([
+  %{
+    to: "user1@example.com",
+    from: "noreply@yourdomain.com",
+    subject: "Welcome to our service",
+    html_body: "<h1>Welcome!</h1><p>Thanks for signing up.</p>",
+    personalizations: %{"first_name" => "John"}
+  },
+  %{
+    to: "user2@example.com",
+    from: "noreply@yourdomain.com",
+    subject: "Your order has shipped",
+    html_body: "<h1>Order Shipped</h1><p>Your order #123 has shipped.</p>",
+    personalizations: %{"first_name" => "Jane", "order_number" => "123"},
+    transactional: true
+  }
+])
+```
+
+### Broadcasts
+
+#### Get all broadcasts
+
+```elixir
+{:ok, broadcasts} = BentoSdk.Broadcasts.get()
+```
+
+#### Create broadcasts
+
+```elixir
+broadcasts = [
+  %{
+    name: "Campaign #1 — Plain Text Example",
+    subject: "Hello Plain World",
+    content: "<p>Hi {{ visitor.first_name }}</p>",
+    type: "plain",
+    from: %{
+      email: "sender@example.com",
+      name: "John Doe"
+    },
+    inclusive_tags: "lead,mql",
+    exclusive_tags: "customers",
+    segment_id: "segment_123456789",
+    batch_size_per_hour: 1500
+  }
+]
+
+{:ok, result} = BentoSdk.Broadcasts.create(broadcasts)
+```
+
+### Stats
+
+#### Get site statistics
+
+```elixir
 {:ok, stats} = BentoSdk.Stats.get_site()
+```
 
-# Get segment statistics
+#### Get segment statistics
+
+```elixir
 {:ok, stats} = BentoSdk.Stats.get_segment("segment_id")
+```
 
-# Get report statistics
+#### Get report statistics
+
+```elixir
 {:ok, stats} = BentoSdk.Stats.get_report("report_id")
 ```
 
-### Utility API Methods
+#### Get subscriber growth
 
 ```elixir
-# Moderate content for profanity and inappropriate content
+{:ok, stats} = BentoSdk.Client.get_subscriber_growth("2023-01-01", "2023-12-31")
+```
+
+### Utility Functions
+
+#### Moderate content
+
+```elixir
 {:ok, result} = BentoSdk.Utility.moderate_content("This is some content to check")
-
-# Guess the gender of a name
-{:ok, result} = BentoSdk.Utility.guess_gender("Alex")
-
-# Geolocate an IP address
-{:ok, result} = BentoSdk.Utility.geolocate("8.8.8.8")
-
-# Validate an email
-{:ok, result} = BentoSdk.Utility.validate_email("user@example.com")
-
-# Check against Jesse's ruleset
-{:ok, reasons} = BentoSdk.Utility.jesses_ruleset("user@example.com", block_free_providers: true)
-
-# Check if a domain or IP is blacklisted
-{:ok, result} = BentoSdk.Utility.check_blacklist(%{domain: "example.com"})
 ```
 
-### Broadcasts API Methods
+#### Guess gender from name
 
 ```elixir
-# Get all broadcasts
-{:ok, broadcasts} = BentoSdk.Broadcasts.get()
-
-# Create a new broadcast
-{:ok, broadcast} = BentoSdk.Broadcasts.create(%{
-  name: "Welcome Email",
-  subject: "Welcome to our service!",
-  body: "<h1>Welcome!</h1><p>Thanks for signing up.</p>",
-  from_email: "welcome@example.com",
-  inclusive_tags: ["new_signup"],
-  exclusive_tags: ["unsubscribed"],
-  segment_id: "segment_123"
-})
+{:ok, result} = BentoSdk.Utility.guess_gender("John")
 ```
+
+#### Geolocate an IP address
+
+```elixir
+{:ok, result} = BentoSdk.Utility.geolocate("8.8.8.8")
+```
+
+#### Validate an email address
+
+```elixir
+{:ok, result} = BentoSdk.Utility.validate_email("user@example.com")
+```
+
+#### Validate with additional options
+
+```elixir
+{:ok, result} = BentoSdk.Utility.validate_email("user@example.com", 
+  name: "John Doe",
+  ip: "8.8.8.8"
+)
+```
+
+#### Check against Jesse's ruleset
+
+```elixir
+{:ok, reasons} = BentoSdk.Utility.jesses_ruleset("user@example.com", 
+  block_free_providers: true,
+  wiggleroom: true
+)
+```
+
+#### Check blacklist status
+
+```elixir
+# Check domain
+{:ok, result} = BentoSdk.Utility.check_blacklist(%{domain: "example.com"})
+
+# Check IP address
+{:ok, result} = BentoSdk.Utility.check_blacklist(%{ip_address: "8.8.8.8"})
+```
+
+## Things to Know
+
+1. The SDK provides full access to Bento's API for managing subscribers, tracking events, and sending emails.
+2. All API requests return `{:ok, result}` or `{:error, reason}` tuples for better error handling.
+3. For event tracking with purchase details, make sure to follow the structure shown in the examples.
+4. Email validation is available both through the Subscribers module and the Utility module.
+5. Bento does not support `no-reply` sender addresses for transactional emails. You MUST use an author you have configured as your sender address.
+6. The SDK includes validation for inputs like email addresses, event fields, and cart details.
+7. For more advanced usage, refer to the [Bento API Documentation](https://docs.bentonow.com).
+
 
 ## Interactive Documentation
 
@@ -225,6 +487,10 @@ The SDK includes comprehensive Livebook files for interactive documentation and 
 
 Each Livebook provides interactive examples with forms that allow you to experiment with the API in real-time.
 
+## Contributing
+
+We welcome contributions! Please feel free to submit pull requests, report issues, or suggest improvements.
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+The Bento SDK for Elixir is available as open source under the terms of the [MIT License](LICENSE.md).
